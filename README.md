@@ -24,3 +24,11 @@
 ## ライセンス
 
 MIT License
+
+# （以下人間による追記）
+## ChatLog(微妙に追記)
+
+|[Chat1.md](Chat1.md)|
+|-|
+|[Chat2.md](Chat2.md)|
+|[Chat3.md](Chat3.md)|
