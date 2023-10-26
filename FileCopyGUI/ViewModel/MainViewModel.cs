@@ -67,6 +67,7 @@ namespace FileCopyGUI.ViewModel
 
         public void SaveConfig()
         {
+            Config.FileMappings = new List<FileMapping>(FileMappings);
             _configService.SaveConfig(Config);
         }
 
