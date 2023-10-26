@@ -1,6 +1,7 @@
 ﻿using FileCopyGUI.Model;
 using FileCopyGUI.ViewModel;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -13,6 +14,8 @@ namespace FileCopyGUI.ViewModel
 {
     class MainViewModel : ObservableObject
     {
+        public ObservableCollection<FileMapping> FileMappings { get; set; } = new ObservableCollection<FileMapping>();
+
         public MainViewModel()
         {
             TestText = "Hello,world!";
@@ -86,6 +89,7 @@ namespace FileCopyGUI.ViewModel
         public void LoadConfig()
         {
             Config = _configService.LoadConfig();
+            FileMappings = new ObservableCollection<FileMapping>(Config.FileMappings);
         }
 
         private RelayCommand copyCommand;
@@ -105,13 +109,24 @@ namespace FileCopyGUI.ViewModel
 
         public void CopyFile()
         {
-            if (File.Exists(Config.SourcePath))
+            foreach (var mapping in FileMappings)
             {
-                File.Copy(Config.SourcePath, Config.DestinationPath, overwrite: true);
-            }
-            else
-            {
-                Message = "Source File is not exist.";
+                if (File.Exists(mapping.SourcePath))
+                {
+                    // 宛先ディレクトリが存在しない場合は、ディレクトリを作成
+                    var directory = Path.GetDirectoryName(mapping.DestinationPath);
+                    if (directory != "" && !Directory.Exists(directory))
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+
+                    // ファイルをコピー
+                    File.Copy(mapping.SourcePath, mapping.DestinationPath, overwrite: true);
+                }
+                else
+                {
+                    // ファイルが存在しない場合の処理（エラーメッセージの表示など）
+                }
             }
         }
 
@@ -125,6 +140,70 @@ namespace FileCopyGUI.ViewModel
                 OnPropertyChanged(nameof(Message));
             }
         }
+
+        private RelayCommand addMappingCommand;
+
+        public ICommand AddMappingCommand
+        {
+            get
+            {
+                if (addMappingCommand == null)
+                {
+                    addMappingCommand = new RelayCommand(AddMapping);
+                }
+
+                return addMappingCommand;
+            }
+        }
+
+        private void AddMapping()
+        {
+            FileMappings.Add(new FileMapping());
+        }
+
+        private RelayCommand removeMappingCommand;
+
+        public ICommand RemoveMappingCommand
+        {
+            get
+            {
+                if (removeMappingCommand == null)
+                {
+                    removeMappingCommand = new RelayCommand(RemoveMapping, CanRemoveMapping);
+                }
+
+                return removeMappingCommand;
+            }
+        }
+
+        private void RemoveMapping()
+        {
+            if (SelectedMapping != null)
+            {
+                FileMappings.Remove(SelectedMapping);
+            }
+        }
+
+        private bool CanRemoveMapping()
+        {
+            return SelectedMapping != null;
+        }
+
+        // SelectedMapping プロパティも追加する必要があります
+        private FileMapping _selectedMapping;
+        public FileMapping SelectedMapping
+        {
+            get { return _selectedMapping; }
+            set
+            {
+                _selectedMapping = value;
+                OnPropertyChanged(nameof(SelectedMapping));
+            }
+        }
+
+
+
+
     }
 
 }

@@ -13,11 +13,30 @@
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10">
         <TextBlock x:Name="textBlock" Text="{Binding TestText}"/>
         <TextBlock Text="{Binding Message}" Foreground="Red" />
-        <TextBlock Text="Source Path:" />
-        <TextBox Text="{Binding Config.SourcePath}" Width="300" />
 
-        <TextBlock Text="Destination Path:" />
-        <TextBox Text="{Binding Config.DestinationPath}" Width="300" />
+        <ListView x:Name="FileMappingListView" ItemsSource="{Binding FileMappings}" SelectedItem="{Binding SelectedMapping}" Height="200">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Source Path" Width="250">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Text="{Binding SourcePath, UpdateSourceTrigger=PropertyChanged}" Width="230"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Destination Path" Width="250">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Text="{Binding DestinationPath, UpdateSourceTrigger=PropertyChanged}" Width="230"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <Button Content="Add Mapping" Command="{Binding AddMappingCommand}" Width="120" Margin="5"/>
+        <Button Content="Remove Mapping" Command="{Binding RemoveMappingCommand}" Width="120" Margin="5"/>
 
         <Button Content="Load" Width="100" Command="{Binding LoadCommand}" />
         <Button Content="Save" Width="100" Command="{Binding SaveCommand}" />
