@@ -1,5 +1,7 @@
 ﻿using FileCopyGUI.Model;
 using FileCopyGUI.ViewModel;
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -8,20 +10,68 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Windows.Input;
 
 namespace FileCopyGUI.ViewModel
 {
-    class MainViewModel : ObservableObject
+    class MainViewModel : ObservableObject, IDisposable
+
     {
         public ObservableCollection<FileMapping> FileMappings { get; set; } = new ObservableCollection<FileMapping>();
+        private FileWatcherService _fileWatcherService;
+
+
 
         public MainViewModel()
         {
             TestText = "Hello,world!";
             LoadConfig();
+
+            BrowseSourceFileCommand = new RelayCommand<FileMapping>(BrowseSourceFile);
+            BrowseDestinationFileCommand = new RelayCommand<FileMapping>(BrowseDestinationFile);
+
+            // 監視対象のファイルパスを取得
+            //var filePaths = Config.FileMappings.Select(m => m.SourcePath);
+
+            _fileWatcherService = new FileWatcherService(Config.FileMappings);
+            _fileWatcherService.StartWatching();
         }
 
+        private void BrowseDestinationFile(FileMapping selectedMapping)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.InitialDirectory = Path.GetDirectoryName(selectedMapping.DestinationPath);
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                selectedMapping.DestinationPath = openFileDialog.FileName;
+                
+                Config.FileMappings = new List<FileMapping>(FileMappings);
+                //FileMappings.Clear();
+                FileMappings = new ObservableCollection<FileMapping>(Config.FileMappings);
+                OnPropertyChanged("FileMappings");
+            }
+        }
+
+        private void BrowseSourceFile(FileMapping selectedMapping)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.InitialDirectory = Path.GetDirectoryName(selectedMapping.SourcePath);
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                selectedMapping.SourcePath = openFileDialog.FileName;
+                
+                Config.FileMappings = new List<FileMapping>(FileMappings);
+                //FileMappings.Clear();
+                FileMappings = new ObservableCollection<FileMapping>(Config.FileMappings);
+                OnPropertyChanged("FileMappings");
+            }
+        }
+
+        void IDisposable.Dispose()
+        {
+            _fileWatcherService?.StopWatching();
+        }
 
         private string testText;
 
@@ -112,17 +162,33 @@ namespace FileCopyGUI.ViewModel
         {
             foreach (var mapping in FileMappings)
             {
-                if (File.Exists(mapping.SourcePath))
+                var sourceDirectoryPath = Path.GetDirectoryName(mapping.SourcePath);
+
+                if (sourceDirectoryPath == "") 
                 {
+                    sourceDirectoryPath = Directory.GetCurrentDirectory();
+                }
+
+                var SourcePath = Path.Combine(sourceDirectoryPath, mapping.SourcePath);
+                if (File.Exists(SourcePath))
+                {
+                    var destinationDirectoryPath = Path.GetDirectoryName(mapping.DestinationPath);
+
+                    if (destinationDirectoryPath == "")
+                    {
+                        destinationDirectoryPath = Directory.GetCurrentDirectory();
+                    }
+
                     // 宛先ディレクトリが存在しない場合は、ディレクトリを作成
-                    var directory = Path.GetDirectoryName(mapping.DestinationPath);
+                    var directory = Path.GetDirectoryName(destinationDirectoryPath);
                     if (directory != "" && !Directory.Exists(directory))
                     {
                         Directory.CreateDirectory(directory);
                     }
 
+                    var DestinationPath = Path.Combine(destinationDirectoryPath, mapping.DestinationPath);
                     // ファイルをコピー
-                    File.Copy(mapping.SourcePath, mapping.DestinationPath, overwrite: true);
+                    File.Copy(SourcePath, DestinationPath, overwrite: true);
                 }
                 else
                 {
@@ -202,9 +268,8 @@ namespace FileCopyGUI.ViewModel
             }
         }
 
-
-
-
+        public RelayCommand<FileMapping> BrowseSourceFileCommand { get; }
+        public RelayCommand<FileMapping> BrowseDestinationFileCommand { get; }
     }
 
 }

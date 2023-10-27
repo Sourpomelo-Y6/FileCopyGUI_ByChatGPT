@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FileCopyGUI.ViewModel;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;

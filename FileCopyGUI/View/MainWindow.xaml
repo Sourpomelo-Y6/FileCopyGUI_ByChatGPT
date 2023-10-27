@@ -17,17 +17,27 @@
         <ListView x:Name="FileMappingListView" ItemsSource="{Binding FileMappings}" SelectedItem="{Binding SelectedMapping}" Height="200">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Source Path" Width="250">
+                    <GridViewColumn Header="Source Path" Width="400">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBox Text="{Binding SourcePath, UpdateSourceTrigger=PropertyChanged}" Width="230"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox Text="{Binding SourcePath, UpdateSourceTrigger=PropertyChanged}" Width="330"/>
+                                    <Button Content="Browse" 
+                                            Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListView}}, Path=DataContext.BrowseSourceFileCommand}" 
+                                            CommandParameter="{Binding}" />
+                                </StackPanel>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="Destination Path" Width="250">
+                    <GridViewColumn Header="Destination Path" Width="400">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBox Text="{Binding DestinationPath, UpdateSourceTrigger=PropertyChanged}" Width="230"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox Text="{Binding DestinationPath, UpdateSourceTrigger=PropertyChanged}" Width="330"/>
+                                    <Button Content="Browse" 
+                                            Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListView}}, Path=DataContext.BrowseDestinationFileCommand}" 
+                                            CommandParameter="{Binding}" />
+                            </StackPanel>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
